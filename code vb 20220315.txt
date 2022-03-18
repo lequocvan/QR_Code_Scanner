@@ -1,0 +1,185 @@
+Imports WebCam_Capture
+Imports System.Drawing.Drawing2D
+Imports MessagingToolkit.QRCode.Codec
+Imports ZXing.Common
+Imports ZXing
+Imports ZXing.QrCode
+'Zebra Crossing
+Public Class Form1
+    WithEvents MyWebcam As WebCamCapture
+    Dim Reader As QRCodeDecoder
+    Dim QR_Generator As New MessagingToolkit.QRCode.Codec.QRCodeEncoder
+    Dim jos As New MessagingToolkit.QRCode.Codec.QRCodeDecoder
+
+    Private Sub MyWebcam_ImageCaptured(source As Object, e As WebcamEventArgs) Handles MyWebcam.ImageCaptured
+        PictureBox1.Image = e.WebCamImage
+        PictureBox5.Image = e.WebCamImage
+    End Sub
+
+    Private Sub StartWebcam()
+        Try
+            StopWebcam()
+            MyWebcam = New WebCamCapture
+            MyWebcam.Start(0)
+            MyWebcam.Start(0)
+        Catch ex As Exception
+
+        End Try
+    End Sub
+
+    Private Sub StopWebcam()
+        Try
+            MyWebcam.Stop()
+            MyWebcam.Dispose()
+        Catch ex As Exception
+
+        End Try
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        'Bật webcam
+        StartWebcam()
+        TextBox2.Clear()
+        TextBox1.Clear()
+    End Sub
+
+    Dim g As Graphics
+    Dim bmp As Bitmap
+    Private ReadOnly newSystem As Object
+
+    Sub newbitmap(ByVal w As Integer, ByVal h As Integer)
+        bmp = New Bitmap(w, h)
+        g = Graphics.FromImage(bmp)
+        g.SmoothingMode = SmoothingMode.AntiAlias
+        PictureBox4.Image = bmp
+    End Sub
+    Sub MergerImages(ByVal img1 As Image, ByVal img2 As Image)
+        newbitmap(PictureBox4.Width, PictureBox4.Height)
+        g.DrawImage(img1, New Rectangle(0, 0, PictureBox4.Width, PictureBox4.Height / 2))
+        g.DrawImage(img2, New Rectangle(0, PictureBox4.Height / 2, PictureBox4.Width, PictureBox4.Height / 2))
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        'Tắt webcam
+        StopWebcam()
+        TextBox2.Clear()
+        TextBox1.Clear()
+    End Sub
+
+    Dim TenChiNhanh = "Agribank Chi nhánh Cầu Giấy"
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        'Save
+        Dim SD As New SaveFileDialog
+        SD.Filter = "Bmp Image|*.bmp|Png Image|*.png|Jpg Image|*.jpg"
+        If SD.ShowDialog() = DialogResult.OK Then
+            'https://stackoverflow.com/questions/19185629/resize-and-save-image-in-the-picturebox-as-png
+            Dim bmp As Bitmap = CType(PictureBox1.Image, Bitmap)
+            Dim bmpt As New Bitmap(120, 150)
+            Using g As Graphics = Graphics.FromImage(bmpt)
+                g.DrawImage(bmp, 0, 0, bmpt.Width + 1, bmpt.Height + 1)
+                g.DrawString(DateTime.Now.ToString, Me.Font, Brushes.DarkRed, New PointF(0, 0))
+                g.DrawString(TenChiNhanh, Me.Font, Brushes.DarkRed, New PointF(1, 10))
+                g.DrawString(TextBox2.Text, Me.Font, Brushes.DarkRed, New PointF(1, 25))
+            End Using
+            'PictureBox1.Image.Save(SD.FileName, Imaging.ImageFormat.Bmp)
+            bmpt.Save(SD.FileName, System.Drawing.Imaging.ImageFormat.Bmp)
+            bmpt.Dispose()
+        End If
+        MessageBox.Show(SD.FileName, "Path of image", MessageBoxButtons.OK, MessageBoxIcon.Information)
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        'Mặt trước
+        Dim bmp As Bitmap = CType(PictureBox1.Image, Bitmap)
+        Dim bmpt As New Bitmap(300, 200)
+        Using g As Graphics = Graphics.FromImage(bmpt)
+            g.DrawImage(bmp, 0, 0, bmpt.Width + 1, bmpt.Height + 1)
+            g.DrawString(DateTime.Now.ToString, Me.Font, Brushes.DarkRed, New PointF(0, 0))
+            g.DrawString(TenChiNhanh, Me.Font, Brushes.DarkRed, New PointF(1, 10))
+            g.DrawString(TextBox2.Text, Me.Font, Brushes.DarkRed, New PointF(1, 25))
+        End Using
+        PictureBox2.Image = bmpt 'PictureBox2.Image = PictureBox1.Image
+    End Sub
+    Private Sub Button6_Click(sender As Object, e As EventArgs) Handles Button6.Click
+        'Mặt sau
+        Dim bmp As Bitmap = CType(PictureBox1.Image, Bitmap)
+        Dim bmpt As New Bitmap(300, 200)
+        Using g As Graphics = Graphics.FromImage(bmpt)
+            g.DrawImage(bmp, 0, 0, bmpt.Width + 1, bmpt.Height + 1)
+            g.DrawString(DateTime.Now.ToString, Me.Font, Brushes.DarkRed, New PointF(0, 0))
+            g.DrawString(TenChiNhanh, Me.Font, Brushes.DarkRed, New PointF(1, 10))
+            g.DrawString(TextBox2.Text, Me.Font, Brushes.DarkRed, New PointF(1, 25))
+        End Using
+        PictureBox3.Image = bmpt 'PictureBox3.Image = PictureBox1.Image
+    End Sub
+
+    Private Sub Button7_Click(sender As Object, e As EventArgs) Handles Button7.Click
+        'Ghép
+        Try
+            MergerImages(PictureBox2.Image, PictureBox3.Image)
+        Catch
+        End Try
+    End Sub
+
+
+    Private Sub PrintDocument1_PrintPage(ByVal sender As System.Object, ByVal e As System.Drawing.Printing.PrintPageEventArgs)
+        e.Graphics.DrawImage(PictureBox4.Image, e.Graphics.VisibleClipBounds)
+        e.HasMorePages = False
+    End Sub
+    Private Sub BtnPrintPicture_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BtnPrintPicture.Click
+        Try
+            Dim pd As New System.Drawing.Printing.PrintDocument()
+            AddHandler pd.PrintPage, AddressOf Me.PrintDocument1_PrintPage
+            pd.Print()
+        Catch ex As Exception
+            MessageBox.Show("An error occurred while printing", ex.ToString())
+        End Try
+        'MessageBox.Show("Lấy bản in giấy đi ..", "Print successfully", MessageBoxButtons.OK, MessageBoxIcon.Information)
+    End Sub
+
+    Private Sub Button8_Click(sender As Object, e As EventArgs) Handles Button8.Click
+        'Lưu
+        Dim SD As New SaveFileDialog
+        SD.Filter = "Bmp Image|*.bmp|Png Image|*.png|Jpg Image|*.jpg"
+        If SD.ShowDialog() = DialogResult.OK Then
+            PictureBox4.Image.Save(SD.FileName, Imaging.ImageFormat.Bmp)
+        End If
+        MessageBox.Show(SD.FileName, "Path of image", MessageBoxButtons.OK, MessageBoxIcon.Information)
+    End Sub
+
+    Private Sub BtnClipboard1_Click(sender As Object, e As EventArgs) Handles BtnClipboard1.Click
+        If PictureBox1.Visible = True Then
+            Clipboard.Clear()
+            Clipboard.SetImage(Me.PictureBox1.Image)
+            MessageBox.Show("Đã copy ảnh chân dung vào clipboard", "Successfully", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        End If
+    End Sub
+
+    Private Sub TextBox3_TextChanged(sender As Object, e As EventArgs) Handles TextBox3.TextChanged
+        'Thong tin can ma hoa sang QR
+        Try
+            PictureBox6.Image = QR_Generator.Encode(TextBox3.Text)
+        Catch ex As Exception
+            MsgBox(ex.Message)
+        End Try
+    End Sub
+
+    Dim pic As Bitmap = New Bitmap(190, 190)
+    Dim gfx As Graphics = Graphics.FromImage(pic)
+    Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
+        gfx.CopyFromScreen(New Point(Me.Location.X + PictureBox5.Location.X + 4, Me.Location.Y + PictureBox5.Location.Y + 30), New Point(0, 0), pic.Size)
+        PictureBox5.Image = pic
+        PictureBox5.Image = Nothing
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        'Save QR
+        Dim SD As New SaveFileDialog
+        SD.Filter = "Bmp Image|*.bmp|Png Image|*.png|Jpg Image|*.jpg"
+        If SD.ShowDialog() = DialogResult.OK Then
+            PictureBox6.Image.Save(SD.FileName, Imaging.ImageFormat.Bmp)
+        End If
+        MessageBox.Show(SD.FileName, "Path of image", MessageBoxButtons.OK, MessageBoxIcon.Information)
+    End Sub
+End Class
